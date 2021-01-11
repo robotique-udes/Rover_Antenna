@@ -3,26 +3,25 @@ import time #Timers inside of threads.
 
 import digitalio
 
+"""
 #RaspberryPi pin definitions:
-#Enable_pin = digitalio.DigitalInOut(board.D18)
-#Coil_A_1_pin = digitalio.DigitalInOut(board.D4)
-#Coil_A_2_pin = digitalio.DigitalInOut(board.D17)
-#Coil_B_1_pin = digitalio.DigitalInOut(board.D23)
-#Coil_B_2_pin = digitalio.DigitalInOut(board.D24)
+Enable_pin = digitalio.DigitalInOut(board.D18)
+Coil_A_1_pin = digitalio.DigitalInOut(board.D4)
+Coil_A_2_pin = digitalio.DigitalInOut(board.D17)
+Coil_B_1_pin = digitalio.DigitalInOut(board.D23)
+Coil_B_2_pin = digitalio.DigitalInOut(board.D24)
+"""
 
 class StepperMotor():
-    #Stepper Delay (s):
-    step_delay = 0.01
-
-    #Stepper Step count:
-    step_count = 0
-
-    step_target = 0
-
-    #Target tracking thread:
-    MoveThread = threading.Thread
 
     def __init__(self, enable_pin, coil_A_1_pin, coil_A_2_pin, coil_B_1_pin, coil_B_2_pin, stepsPerTurn=512):
+        #Stepper Delay (s):
+        self.step_delay = 0.01
+
+        #Stepper Step count:
+        self.step_count = 0
+        self.step_target = 0
+
         self.enable_pin = digitalio.DigitalInOut(enable_pin)
         self.coil_A_1_pin = digitalio.DigitalInOut(coil_A_1_pin)
         self.coil_A_2_pin = digitalio.DigitalInOut(coil_A_2_pin)
@@ -62,7 +61,7 @@ class StepperMotor():
             self.step_count += 1
             i += 1
 
-    def backwards(self, steps):
+    def backward(self, steps):
         i = 0
         while i in range(0, steps):
             self.setStep(0, 0, 1, 1)
@@ -81,7 +80,9 @@ class StepperMotor():
             if self.step_target > self.step_count:
                 self.forward(self.step_target - self.step_count)
             elif self.step_target < self.step_count:
-                self.backwards(self.step_count - self.step_target)
+                self.backward(self.step_count - self.step_target)
+            else:
+                time.sleep(1)
 
     def setAngle(self, angle):
         self.step_target = int(angle / 360 * self.step_revolution)
@@ -92,4 +93,4 @@ class StepperMotor():
 
     def disable(self):
         self.enable_pin.value = False
-        self.MoveThread.stop()
+        self.MoveThread.join()
